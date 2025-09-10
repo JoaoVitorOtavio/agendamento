@@ -61,6 +61,10 @@ export const alterarStatus = async (id: string, novoStatus: StatusAgendamento): 
 		throw new Error("Não é possível cancelar um agendamento já concluído");
 	}
 
+	if (agendamentoOnDb.status === "cancelado") {
+		throw new Error("Não é possível alterar um agendamento cancelado");
+	}
+
 	await agendamentoRepository.update({ id }, { status: novoStatus });
 
 
