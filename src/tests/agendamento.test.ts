@@ -6,6 +6,7 @@ import {
 } from "../services/agendamentoService";
 import { Agendamento } from "../models/agendamento";
 import { addDays } from "date-fns";
+import { AppDataSource } from "../database/data-source";
 
 describe("Agendamento Service", () => {
 	let agendamento: Agendamento;
@@ -22,8 +23,16 @@ describe("Agendamento Service", () => {
 		};
 	});
 
-	it("Deve criar um novo agendamento", () => {
-		const novoAgendamento = criarAgendamento(agendamento);
+	beforeAll(async () => {
+		await AppDataSource.initialize();
+	});
+
+	afterAll(async () => {
+		await AppDataSource.destroy();
+	});
+
+	it("Deve criar um novo agendamento", async () => {
+		const novoAgendamento = await criarAgendamento(agendamento);
 		expect(novoAgendamento).toEqual(agendamento);
 	});
 
