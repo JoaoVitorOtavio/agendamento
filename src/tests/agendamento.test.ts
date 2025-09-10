@@ -171,12 +171,11 @@ describe("Agendamento Service - Filtros", () => {
 		expect(agendamentosConcluido[0].status).toBe("concluido");
 	});
 
-	it("Deve filtrar agendamentos por motorista (CPF)", () => {
-		const agendamentosMotorista = listarAgendamentos(
-			undefined,
-			undefined,
-			"12345678900"
-		);
+	it("Deve filtrar agendamentos por motorista (CPF)", async () => {
+		const agendamentosMotorista = await listarAgendamentos({
+			motoristaCpf: "12345678900"
+		});
+
 		expect(agendamentosMotorista.length).toBe(2);
 		expect(agendamentosMotorista[0].motoristaCpf).toBe("12345678900");
 		expect(agendamentosMotorista[1].motoristaCpf).toBe("12345678900");
