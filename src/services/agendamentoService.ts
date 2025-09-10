@@ -51,16 +51,20 @@ export const criarAgendamento = async (novoAgendamento: Agendamento): Promise<Ag
 export const alterarStatus = async (id: string, novoStatus: StatusAgendamento): Promise<Agendamento> => {
 	const agendamentoRepository = AppDataSource.getRepository(Agendamento);
 
-	const agendamentoAtualizado = await agendamentoRepository.findOneBy({ id });
+	const agendamentoOnDb = await agendamentoRepository.findOneBy({ id });
 
-	if (!agendamentoAtualizado) {
+	if (!agendamentoOnDb) {
 		throw new Error("Agendamento não encontrado");
+	}
+
+	if (agendamentoOnDb.status === "concluido" && novoStatus === "cancelado") {
+		throw new Error("Não é possível cancelar um agendamento já concluído");
 	}
 
 	await agendamentoRepository.update({ id }, { status: novoStatus });
 
 
-	return { ...agendamentoAtualizado, status: novoStatus };
+	return { ...agendamentoOnDb, status: novoStatus };
 };
 
 // TODO: arrumar tipagens
