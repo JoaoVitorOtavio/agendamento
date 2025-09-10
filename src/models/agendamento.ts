@@ -16,7 +16,7 @@ export class Agendamento {
     @Column()
     motoristaNome: string;
 
-    @Column({ unique: true })
+    @Column()
     motoristaCpf: string;
 
     @Column()
