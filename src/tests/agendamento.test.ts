@@ -161,13 +161,13 @@ describe("Agendamento Service - Filtros", () => {
 		expect(agendamentos[0].id).toBe("1");
 	});
 
-	it("Deve filtrar agendamentos por status", () => {
-		const agendamentosPendente = listarAgendamentos(undefined, "pendente");
+	it("Deve filtrar agendamentos por status", async () => {
+		const agendamentosPendente = await listarAgendamentos({ status: "atrasado" });
 		expect(agendamentosPendente.length).toBe(1);
-		expect(agendamentosPendente[0].status).toBe("pendente");
+		expect(agendamentosPendente[0].status).toBe("atrasado");
 
-		const agendamentosConcluido = listarAgendamentos(undefined, "concluido");
-		expect(agendamentosConcluido.length).toBe(1);
+		const agendamentosConcluido = await listarAgendamentos({ status: "concluido" });
+		expect(agendamentosConcluido.length).toBe(2);
 		expect(agendamentosConcluido[0].status).toBe("concluido");
 	});
 
