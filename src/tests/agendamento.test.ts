@@ -102,7 +102,15 @@ describe("Agendamento Service - Filtros", () => {
 	let agendamento2: Agendamento;
 	let agendamento3: Agendamento;
 
-	beforeEach(() => {
+	beforeAll(async () => {
+		await AppDataSource.initialize();
+	});
+
+
+	beforeEach(async () => {
+		const agendamentoRepo = AppDataSource.getRepository(Agendamento);
+		await agendamentoRepo.clear();
+
 		agendamento1 = {
 			id: "1",
 			motoristaNome: "João",
@@ -110,7 +118,7 @@ describe("Agendamento Service - Filtros", () => {
 			placaCaminhao: "ABC-1234",
 			numeroContrato: "CT123",
 			dataHora: new Date("2024-09-15T10:00:00Z"),
-			status: "pendente",
+			status: "concluido",
 		};
 
 		agendamento2 = {
@@ -133,103 +141,107 @@ describe("Agendamento Service - Filtros", () => {
 			status: "atrasado",
 		};
 
-		criarAgendamento(agendamento1);
-		criarAgendamento(agendamento2);
-		criarAgendamento(agendamento3);
+		await criarAgendamento(agendamento1);
+		await criarAgendamento(agendamento2);
+		await criarAgendamento(agendamento3);
 	});
 
-	it("Deve listar todos os agendamentos sem filtro", () => {
-		const agendamentos = listarAgendamentos();
+	afterAll(async () => {
+		await AppDataSource.destroy();
+	});
+
+	it("Deve listar todos os agendamentos sem filtro", async () => {
+		const agendamentos = await listarAgendamentos({});
 		expect(agendamentos.length).toBe(3);
 	});
 
-	it("Deve filtrar agendamentos por dia específico", () => {
-		const agendamentos = listarAgendamentos(new Date("2024-09-15"));
-		expect(agendamentos.length).toBe(1);
-		expect(agendamentos[0].id).toBe("1");
+		it("Deve filtrar agendamentos por dia específico", () => {
+			const agendamentos = listarAgendamentos(new Date("2024-09-15"));
+			expect(agendamentos.length).toBe(1);
+			expect(agendamentos[0].id).toBe("1");
+		});
+
+		it("Deve filtrar agendamentos por status", () => {
+			const agendamentosPendente = listarAgendamentos(undefined, "pendente");
+			expect(agendamentosPendente.length).toBe(1);
+			expect(agendamentosPendente[0].status).toBe("pendente");
+
+			const agendamentosConcluido = listarAgendamentos(undefined, "concluido");
+			expect(agendamentosConcluido.length).toBe(1);
+			expect(agendamentosConcluido[0].status).toBe("concluido");
+		});
+
+		it("Deve filtrar agendamentos por motorista (CPF)", () => {
+			const agendamentosMotorista = listarAgendamentos(
+				undefined,
+				undefined,
+				"12345678900"
+			);
+			expect(agendamentosMotorista.length).toBe(2);
+			expect(agendamentosMotorista[0].motoristaCpf).toBe("12345678900");
+			expect(agendamentosMotorista[1].motoristaCpf).toBe("12345678900");
+		});
+
+		it("Deve filtrar agendamentos por dia, status e motorista ao mesmo tempo", () => {
+			const agendamentos = listarAgendamentos(
+				new Date("2024-09-17"),
+				"atrasado",
+				"12345678900"
+			);
+			expect(agendamentos.length).toBe(1);
+			expect(agendamentos[0].id).toBe("3");
+		});
 	});
 
-	it("Deve filtrar agendamentos por status", () => {
-		const agendamentosPendente = listarAgendamentos(undefined, "pendente");
-		expect(agendamentosPendente.length).toBe(1);
-		expect(agendamentosPendente[0].status).toBe("pendente");
 
-		const agendamentosConcluido = listarAgendamentos(undefined, "concluido");
-		expect(agendamentosConcluido.length).toBe(1);
-		expect(agendamentosConcluido[0].status).toBe("concluido");
-	});
+	describe("Agendamento Service - Remover Agendamentos Antigos", () => {
+		let agendamento1: Agendamento;
+		let agendamento2: Agendamento;
+		let agendamento3: Agendamento;
 
-	it("Deve filtrar agendamentos por motorista (CPF)", () => {
-		const agendamentosMotorista = listarAgendamentos(
-			undefined,
-			undefined,
-			"12345678900"
-		);
-		expect(agendamentosMotorista.length).toBe(2);
-		expect(agendamentosMotorista[0].motoristaCpf).toBe("12345678900");
-		expect(agendamentosMotorista[1].motoristaCpf).toBe("12345678900");
-	});
+		beforeEach(() => {
+			agendamento1 = {
+				id: "1",
+				motoristaNome: "João",
+				motoristaCpf: "12345678900",
+				placaCaminhao: "ABC-1234",
+				numeroContrato: "CT123",
+				dataHora: addDays(new Date(), -4), // Agendamento com 4 dias atrás
+				status: "pendente",
+			};
 
-	it("Deve filtrar agendamentos por dia, status e motorista ao mesmo tempo", () => {
-		const agendamentos = listarAgendamentos(
-			new Date("2024-09-17"),
-			"atrasado",
-			"12345678900"
-		);
-		expect(agendamentos.length).toBe(1);
-		expect(agendamentos[0].id).toBe("3");
-	});
-});
+			agendamento2 = {
+				id: "2",
+				motoristaNome: "Pedro",
+				motoristaCpf: "98765432100",
+				placaCaminhao: "XYZ-5678",
+				numeroContrato: "CT456",
+				dataHora: addDays(new Date(), -2), // Agendamento com 2 dias atrás
+				status: "concluido",
+			};
 
+			agendamento3 = {
+				id: "3",
+				motoristaNome: "Maria",
+				motoristaCpf: "11122233344",
+				placaCaminhao: "JKL-9101",
+				numeroContrato: "CT789",
+				dataHora: new Date(), // Agendamento de hoje
+				status: "atrasado",
+			};
 
-describe("Agendamento Service - Remover Agendamentos Antigos", () => {
-	let agendamento1: Agendamento;
-	let agendamento2: Agendamento;
-	let agendamento3: Agendamento;
+			criarAgendamento(agendamento1);
+			criarAgendamento(agendamento2);
+			criarAgendamento(agendamento3);
+		});
 
-	beforeEach(() => {
-		agendamento1 = {
-			id: "1",
-			motoristaNome: "João",
-			motoristaCpf: "12345678900",
-			placaCaminhao: "ABC-1234",
-			numeroContrato: "CT123",
-			dataHora: addDays(new Date(), -4), // Agendamento com 4 dias atrás
-			status: "pendente",
-		};
+		it("Deve remover agendamentos com mais de 3 dias", () => {
+			removerAgendamentosAntigos();
+			const agendamentos = listarAgendamentos();
 
-		agendamento2 = {
-			id: "2",
-			motoristaNome: "Pedro",
-			motoristaCpf: "98765432100",
-			placaCaminhao: "XYZ-5678",
-			numeroContrato: "CT456",
-			dataHora: addDays(new Date(), -2), // Agendamento com 2 dias atrás
-			status: "concluido",
-		};
-
-		agendamento3 = {
-			id: "3",
-			motoristaNome: "Maria",
-			motoristaCpf: "11122233344",
-			placaCaminhao: "JKL-9101",
-			numeroContrato: "CT789",
-			dataHora: new Date(), // Agendamento de hoje
-			status: "atrasado",
-		};
-
-		criarAgendamento(agendamento1);
-		criarAgendamento(agendamento2);
-		criarAgendamento(agendamento3);
-	});
-
-	it("Deve remover agendamentos com mais de 3 dias", () => {
-		removerAgendamentosAntigos();
-		const agendamentos = listarAgendamentos();
-
-		expect(agendamentos.length).toBe(2); // Apenas dois agendamentos devem restar
-		expect(agendamentos.find((a) => a.id === "1")).toBeUndefined(); // Agendamento com 4 dias foi removido
-		expect(agendamentos.find((a) => a.id === "2")).toBeDefined(); // Agendamento com 2 dias continua
-		expect(agendamentos.find((a) => a.id === "3")).toBeDefined(); // Agendamento de hoje continua
-	});
+			expect(agendamentos.length).toBe(2); // Apenas dois agendamentos devem restar
+			expect(agendamentos.find((a) => a.id === "1")).toBeUndefined(); // Agendamento com 4 dias foi removido
+			expect(agendamentos.find((a) => a.id === "2")).toBeDefined(); // Agendamento com 2 dias continua
+			expect(agendamentos.find((a) => a.id === "3")).toBeDefined(); // Agendamento de hoje continua
+		});
 });
