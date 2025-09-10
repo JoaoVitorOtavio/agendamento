@@ -84,7 +84,11 @@ export const listarAgendamentos = async (filtros: FiltroAgendamento): Promise<Ag
 	let agendamentos = await agendamentoRepo.find();
 
 	if (filtros.data) {
-		agendamentos = agendamentos.filter((a) => isSameDay(a.dataHora, filtros.data!));
+		agendamentos = agendamentos.filter((a) => {
+			const dataString = a.dataHora.toISOString().split("T")[0];
+
+			return isSameDay(new Date(dataString), filtros.data!)
+		});
 	}
 
 	if (filtros.status) {
