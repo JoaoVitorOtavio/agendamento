@@ -5,7 +5,7 @@ export type StatusAgendamento = "pendente" | "concluido" | "atrasado" | "cancela
 @Entity("agendamentos")
 export class Agendamento {
     @PrimaryGeneratedColumn()
-    id: number;
+    id: string;
 
     @Column({ type: "datetime" })
     dataHora: Date;
