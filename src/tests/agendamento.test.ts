@@ -87,10 +87,11 @@ describe("Agendamento Service", () => {
 		);
 	});
 
-	it("Não deve permitir alterar um agendamento cancelado", () => {
-		criarAgendamento(agendamento);
-		alterarStatus(agendamento.id, "cancelado");
-		expect(() => alterarStatus(agendamento.id, "concluido")).toThrow(
+	it("Não deve permitir alterar um agendamento cancelado", async () => {
+		await criarAgendamento(agendamento);
+		await alterarStatus(agendamento.id, "cancelado");
+
+		await expect(alterarStatus(agendamento.id, "concluido")).rejects.toThrow(
 			"Não é possível alterar um agendamento cancelado"
 		);
 	});
@@ -179,6 +180,7 @@ describe("Agendamento Service - Filtros", () => {
 		expect(agendamentos[0].id).toBe("3");
 	});
 });
+
 
 describe("Agendamento Service - Remover Agendamentos Antigos", () => {
 	let agendamento1: Agendamento;
