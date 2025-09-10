@@ -19,12 +19,26 @@ const possuiAgendamentoPendenteOuAtrasado = async (
 	return existe;
 };
 
+const verificarConflitoNoMesmoHorario = async (
+	dataHora: Date
+): Promise<boolean> => {
+	const agendamentoRepository = AppDataSource.getRepository(Agendamento);
+
+	const existe = await agendamentoRepository.exists({
+		where: { dataHora },
+	});
+
+	return existe;
+}
+
 export const criarAgendamento = async (novoAgendamento: Agendamento): Promise<Agendamento> => {
 	const agendamentoRepository = AppDataSource.getRepository(Agendamento);
 
 	const possuiPendenciaOuAtraso = await possuiAgendamentoPendenteOuAtrasado(novoAgendamento.motoristaCpf);
 
-	if (possuiPendenciaOuAtraso) {
+	const conflitoNoMesmoHorario = await verificarConflitoNoMesmoHorario(novoAgendamento.dataHora);
+
+	if (possuiPendenciaOuAtraso || conflitoNoMesmoHorario) {
 		throw new Error("Conflito de agendamento");
 	}
 
