@@ -1,5 +1,5 @@
 import { AppDataSource } from '../database/data-source';
-import { Agendamento } from '../models/agendamento';
+import { Agendamento, StatusAgendamento } from '../models/agendamento';
 import { isSameDay } from "date-fns";
 
 var agendamentos: Agendamento[] = [];
@@ -47,11 +47,20 @@ export const criarAgendamento = async (novoAgendamento: Agendamento): Promise<Ag
 	return createdRepository;
 };
 
-interface Status { }
 
-export const alterarStatus = (id: any, novoStatus: Status): /* Agendamento */ void => {
-	// TODO
+export const alterarStatus = async (id: string, novoStatus: StatusAgendamento): Promise<Agendamento> => {
+	const agendamentoRepository = AppDataSource.getRepository(Agendamento);
 
+	const agendamentoAtualizado = await agendamentoRepository.findOneBy({ id });
+
+	if (!agendamentoAtualizado) {
+		throw new Error("Agendamento não encontrado");
+	}
+
+	await agendamentoRepository.update({ id }, { status: novoStatus });
+
+
+	return { ...agendamentoAtualizado, status: novoStatus };
 };
 
 // TODO: arrumar tipagens
