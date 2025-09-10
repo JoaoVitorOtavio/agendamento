@@ -78,10 +78,11 @@ describe("Agendamento Service", () => {
 			.toThrow("Agendamento não encontrado");
 	});
 
-	it("Não deve permitir cancelar um agendamento concluído", () => {
-		criarAgendamento(agendamento);
-		alterarStatus(agendamento.id, "concluido");
-		expect(() => alterarStatus(agendamento.id, "cancelado")).toThrow(
+	it("Não deve permitir cancelar um agendamento concluído", async () => {
+		await criarAgendamento(agendamento);
+		await alterarStatus(agendamento.id, "concluido");
+
+		await expect(alterarStatus(agendamento.id, "cancelado")).rejects.toThrow(
 			"Não é possível cancelar um agendamento já concluído"
 		);
 	});
