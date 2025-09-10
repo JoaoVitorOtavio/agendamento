@@ -8,17 +8,24 @@ import { Agendamento } from "../models/agendamento";
 import { addDays } from "date-fns";
 import { AppDataSource } from "../database/data-source";
 
+beforeAll(async () => {
+	await AppDataSource.initialize();
+});
+
+beforeEach(async () => {
+	const agendamentoRepo = AppDataSource.getRepository(Agendamento);
+	await agendamentoRepo.clear();
+});
+
+afterAll(async () => {
+	await AppDataSource.destroy();
+});
+
+
 describe("Agendamento Service", () => {
 	let agendamento: Agendamento;
 
-	beforeAll(async () => {
-		await AppDataSource.initialize();
-	});
-
 	beforeEach(async () => {
-		const agendamentoRepo = AppDataSource.getRepository(Agendamento);
-		await agendamentoRepo.clear();
-
 		agendamento = {
 			id: "1",
 			motoristaNome: "João",
@@ -28,10 +35,6 @@ describe("Agendamento Service", () => {
 			dataHora: new Date("2024-09-15T10:00:00Z"),
 			status: "pendente",
 		};
-	});
-
-	afterAll(async () => {
-		await AppDataSource.destroy();
 	});
 
 	it("Deve criar um novo agendamento", async () => {
@@ -102,15 +105,7 @@ describe("Agendamento Service - Filtros", () => {
 	let agendamento2: Agendamento;
 	let agendamento3: Agendamento;
 
-	beforeAll(async () => {
-		await AppDataSource.initialize();
-	});
-
-
 	beforeEach(async () => {
-		const agendamentoRepo = AppDataSource.getRepository(Agendamento);
-		await agendamentoRepo.clear();
-
 		agendamento1 = {
 			id: "1",
 			motoristaNome: "João",
@@ -144,10 +139,6 @@ describe("Agendamento Service - Filtros", () => {
 		await criarAgendamento(agendamento1);
 		await criarAgendamento(agendamento2);
 		await criarAgendamento(agendamento3);
-	});
-
-	afterAll(async () => {
-		await AppDataSource.destroy();
 	});
 
 	it("Deve listar todos os agendamentos sem filtro", async () => {
@@ -199,7 +190,7 @@ describe("Agendamento Service - Remover Agendamentos Antigos", () => {
 	let agendamento2: Agendamento;
 	let agendamento3: Agendamento;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		agendamento1 = {
 			id: "1",
 			motoristaNome: "João",
@@ -230,14 +221,14 @@ describe("Agendamento Service - Remover Agendamentos Antigos", () => {
 			status: "atrasado",
 		};
 
-		criarAgendamento(agendamento1);
-		criarAgendamento(agendamento2);
-		criarAgendamento(agendamento3);
+		await criarAgendamento(agendamento1);
+		await criarAgendamento(agendamento2);
+		await criarAgendamento(agendamento3);
 	});
 
-	it("Deve remover agendamentos com mais de 3 dias", () => {
-		removerAgendamentosAntigos();
-		const agendamentos = listarAgendamentos();
+	it("Deve remover agendamentos com mais de 3 dias", async () => {
+		await removerAgendamentosAntigos();
+		const agendamentos = await listarAgendamentos({});
 
 		expect(agendamentos.length).toBe(2); // Apenas dois agendamentos devem restar
 		expect(agendamentos.find((a) => a.id === "1")).toBeUndefined(); // Agendamento com 4 dias foi removido
