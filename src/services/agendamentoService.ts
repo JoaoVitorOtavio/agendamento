@@ -4,8 +4,29 @@ import { isSameDay } from "date-fns";
 
 var agendamentos: Agendamento[] = [];
 
+const possuiAgendamentoPendenteOuAtrasado = async (
+	motoristaCpf: string
+): Promise<boolean> => {
+	const agendamentoRepository = AppDataSource.getRepository(Agendamento);
+
+	const existe = await agendamentoRepository.exists({
+		where: [
+			{ motoristaCpf, status: "pendente" },
+			{ motoristaCpf, status: "atrasado" },
+		],
+	});
+
+	return existe;
+};
+
 export const criarAgendamento = async (novoAgendamento: Agendamento): Promise<Agendamento> => {
 	const agendamentoRepository = AppDataSource.getRepository(Agendamento);
+
+	const possuiPendenciaOuAtraso = await possuiAgendamentoPendenteOuAtrasado(novoAgendamento.motoristaCpf);
+
+	if (possuiPendenciaOuAtraso) {
+		throw new Error("Conflito de agendamento");
+	}
 
 	const createdRepository = await agendamentoRepository.save(novoAgendamento);
 
