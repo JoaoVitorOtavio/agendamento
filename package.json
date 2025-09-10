@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "scripts": {
     "start": "ts-node-dev src/server.ts",
-    "test": "cross-env NODE_ENV=test jest --passWithNoTests --watch"
+    "test": "cross-env NODE_ENV=test jest --passWithNoTests --watch",
+    "migration:run": "ts-node ./node_modules/typeorm/cli.js migration:run -d src/database/data-source.ts",
+    "migration:revert": "ts-node ./node_modules/typeorm/cli.js migration:revert -d src/database/data-source.ts"
   },
   "dependencies": {
     "date-fns": "^3.6.0",
