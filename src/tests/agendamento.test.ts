@@ -181,12 +181,13 @@ describe("Agendamento Service - Filtros", () => {
 		expect(agendamentosMotorista[1].motoristaCpf).toBe("12345678900");
 	});
 
-	it("Deve filtrar agendamentos por dia, status e motorista ao mesmo tempo", () => {
-		const agendamentos = listarAgendamentos(
-			new Date("2024-09-17"),
-			"atrasado",
-			"12345678900"
-		);
+	it("Deve filtrar agendamentos por dia, status e motorista ao mesmo tempo", async () => {
+		const agendamentos = await listarAgendamentos({
+			data: new Date("2024-09-17"),
+			status: "atrasado",
+			motoristaCpf: "12345678900"
+		});
+
 		expect(agendamentos.length).toBe(1);
 		expect(agendamentos[0].id).toBe("3");
 	});
