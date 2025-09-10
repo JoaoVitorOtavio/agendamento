@@ -71,21 +71,31 @@ export const alterarStatus = async (id: string, novoStatus: StatusAgendamento): 
 	return { ...agendamentoOnDb, status: novoStatus };
 };
 
-// TODO: arrumar tipagens
-export const listarAgendamentos = (d: any, s: any, m: any): Agendamento[] => {
-	return agendamentos.filter((a) => {
-		var corresponde = true;
 
-		if (d) {
-			corresponde = corresponde && isSameDay(a.dataHora, d);
-		} else if (s) {
-			corresponde = corresponde && a.status === s;
-		} else if (m) {
-			corresponde = corresponde && a.motoristaCpf === m;
-		}
+interface FiltroAgendamento {
+	data?: Date;
+	status?: StatusAgendamento;
+	motoristaCpf?: string;
+}
 
-		return corresponde;
-	});
+export const listarAgendamentos = async (filtros: FiltroAgendamento): Promise<Agendamento[]> => {
+	const agendamentoRepo = AppDataSource.getRepository(Agendamento);
+
+	let agendamentos = await agendamentoRepo.find();
+
+	if (filtros.data) {
+		agendamentos = agendamentos.filter((a) => isSameDay(a.dataHora, filtros.data!));
+	}
+
+	if (filtros.status) {
+		agendamentos = agendamentos.filter((a) => a.status === filtros.status);
+	}
+
+	if (filtros.motoristaCpf) {
+		agendamentos = agendamentos.filter((a) => a.motoristaCpf === filtros.motoristaCpf);
+	}
+
+	return agendamentos;
 };
 
 export const removerAgendamentosAntigos = (): void => {
