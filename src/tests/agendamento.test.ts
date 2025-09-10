@@ -62,10 +62,20 @@ describe("Agendamento Service", () => {
 		)
 	});
 
-	it("Deve alterar o status de um agendamento", () => {
-		criarAgendamento(agendamento);
-		const atualizado = alterarStatus(agendamento.id, "concluido");
+	it("Deve alterar o status de um agendamento", async () => {
+		await criarAgendamento(agendamento);
+
+		const atualizado = await alterarStatus(agendamento.id, "concluido");
+
 		expect(atualizado.status).toBe("concluido");
+	});
+
+	it("Deve lançar erro se tentar alterar status de agendamento inexistente", async () => {
+		const idInexistente = '999';
+
+		await expect(alterarStatus(idInexistente, "concluido"))
+			.rejects
+			.toThrow("Agendamento não encontrado");
 	});
 
 	it("Não deve permitir cancelar um agendamento concluído", () => {
