@@ -1,17 +1,26 @@
+import { AppDataSource } from '../database/data-source';
 import { Agendamento } from '../models/agendamento';
 import { isSameDay } from "date-fns";
 
 var agendamentos: Agendamento[] = [];
 
-export const criarAgendamento = (novoAgendamento: Agendamento): Agendamento => {
-	// TODO
+export const criarAgendamento = async (novoAgendamento: Agendamento): Promise<Agendamento> => {
+	const agendamentoRepository = AppDataSource.getRepository(Agendamento);
+
+	const createdRepository = await agendamentoRepository.save(novoAgendamento);
+
+	return createdRepository;
 };
 
-export const alterarStatus = (id, novoStatus: Status): Agendamento => {
+interface Status { }
+
+export const alterarStatus = (id: any, novoStatus: Status): /* Agendamento */ void => {
 	// TODO
+
 };
 
-export const listarAgendamentos = (d, s, m): Agendamento[] => {
+// TODO: arrumar tipagens
+export const listarAgendamentos = (d: any, s: any, m: any): Agendamento[] => {
 	return agendamentos.filter((a) => {
 		var corresponde = true;
 
@@ -30,6 +39,11 @@ export const listarAgendamentos = (d, s, m): Agendamento[] => {
 export const removerAgendamentosAntigos = (): void => {
 	var temp: Agendamento[] = [];
 
+	// TODO: construir funcao
+	function differenceInDays(date: Date, hora: Date): number {
+		return 3;
+	}
+
 	agendamentos.map((a) => {
 		const diasDeDiferenca = differenceInDays(new Date(), a.dataHora);
 
@@ -44,5 +58,5 @@ export const removerAgendamentosAntigos = (): void => {
 		}
 	});
 
-	agendamentos = temp;	
+	agendamentos = temp;
 };
