@@ -1,3 +1,55 @@
+<h1 style="color:#2c3e50;">OBSERVAÇÕES DO TESTE</h1>
+
+<p>Para este teste, foram desenvolvidas <strong>duas abordagens</strong>:</p>
+<ul>
+  <li>Com ORM e banco de dados (SQLite)</li>
+  <li>Apenas em memória (sem ORM e sem banco)</li>
+</ul>
+
+<h2 style="color:#34495e;">Branch principal (<code>main</code>)</h2>
+
+<p>Na branch <code>main</code>, você encontra o projeto utilizando <strong>ORM e banco de dados</strong>.</p>
+
+<h3>Passos para rodar:</h3>
+<ol>
+  <li>
+    Instale as dependências:
+    <pre><code>yarn</code></pre>
+  </li>
+  <li>
+    Execute as migrations para atualizar o banco:
+    <pre><code>yarn migration:run</code></pre>
+    <p>Observação: não é necessário ter o banco instalado separadamente, pois utilizamos SQLite.</p>
+  </li>
+  <li>
+    Rode os testes:
+    <pre><code>yarn test</code></pre>
+  </li>
+  <li>
+    Inicie o projeto:
+    <pre><code>yarn start</code></pre>
+  </li>
+</ol>
+
+<h2 style="color:#34495e;">Versão em memória (sem ORM e sem banco)</h2>
+
+<p>Para utilizar a versão que não depende de banco de dados, basta mudar de branch:</p>
+<pre><code>git checkout refactor/in-memory-version</code></pre>
+
+<p>Caso suas dependências já estejam instaladas, você pode executar os testes ou iniciar o projeto diretamente:</p>
+<ul>
+  <li>Rodar testes:
+    <pre><code>yarn test</code></pre>
+  </li>
+  <li>Iniciar o projeto:
+    <pre><code>yarn start</code></pre>
+  </li>
+</ul>
+
+<p>Essa abordagem permite avaliar a solução em <strong>ambos os formatos</strong>, garantindo que os testes e funcionalidades funcionem tanto com banco de dados quanto em memória.</p>
+
+
+
 # Desafio Técnico - API de Agendamento
 
 ## Objetivo
