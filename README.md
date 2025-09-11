@@ -155,7 +155,7 @@ A API fornece uma rota para excluir todos os agendamentos que possuem mais de 3 
 ### Instalação
 1. Clone o repositório:
 	```bash
-	git clone https://github.com/SEU_USUARIO/NOME_DO_REPOSITORIO.git
+	git clone https://github.com/JoaoVitorOtavio/agendamento.git
 	```
 2. Instale as dependências:
 	```bash
