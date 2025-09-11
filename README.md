@@ -3,7 +3,7 @@
 <p>Para este teste, foram desenvolvidas <strong>duas abordagens</strong>:</p>
 <ul>
   <li>Com ORM e banco de dados (SQLite)</li>
-  <li>Apenas em memória (sem ORM e sem banco)</li>
+  <li>- Apenas em memória (sem ORM e sem banco) — existe um PR em aberto com os commits separados caso queiram conferir.</li>
 </ul>
 
 <h2 style="color:#34495e;">Branch principal (<code>main</code>)</h2>
