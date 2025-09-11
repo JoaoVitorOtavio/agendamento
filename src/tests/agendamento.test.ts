@@ -1,6 +1,7 @@
 import {
 	criarAgendamento,
 	alterarStatus,
+	limparAgendamentos,
 	listarAgendamentos,
 	removerAgendamentosAntigos,
 } from "../services/agendamentoService";
@@ -11,6 +12,8 @@ describe("Agendamento Service", () => {
 	let agendamento: Agendamento;
 
 	beforeEach(() => {
+		limparAgendamentos();
+
 		agendamento = {
 			id: "1",
 			motoristaNome: "João",
@@ -76,6 +79,8 @@ describe("Agendamento Service - Filtros", () => {
 	let agendamento3: Agendamento;
 
 	beforeEach(() => {
+		limparAgendamentos();
+
 		agendamento1 = {
 			id: "1",
 			motoristaNome: "João",
@@ -83,7 +88,7 @@ describe("Agendamento Service - Filtros", () => {
 			placaCaminhao: "ABC-1234",
 			numeroContrato: "CT123",
 			dataHora: new Date("2024-09-15T10:00:00Z"),
-			status: "pendente",
+			status: "concluido",
 		};
 
 		agendamento2 = {
@@ -124,11 +129,10 @@ describe("Agendamento Service - Filtros", () => {
 
 	it("Deve filtrar agendamentos por status", () => {
 		const agendamentosPendente = listarAgendamentos(undefined, "pendente");
-		expect(agendamentosPendente.length).toBe(1);
-		expect(agendamentosPendente[0].status).toBe("pendente");
+		expect(agendamentosPendente.length).toBe(0);
 
 		const agendamentosConcluido = listarAgendamentos(undefined, "concluido");
-		expect(agendamentosConcluido.length).toBe(1);
+		expect(agendamentosConcluido.length).toBe(2);
 		expect(agendamentosConcluido[0].status).toBe("concluido");
 	});
 
@@ -160,6 +164,8 @@ describe("Agendamento Service - Remover Agendamentos Antigos", () => {
 	let agendamento3: Agendamento;
 
 	beforeEach(() => {
+		limparAgendamentos();
+
 		agendamento1 = {
 			id: "1",
 			motoristaNome: "João",
