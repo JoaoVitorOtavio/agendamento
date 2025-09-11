@@ -1,24 +1,40 @@
 import { Request, Response } from 'express';
 import {
+	alterarStatus,
+	criarAgendamento,
 	listarAgendamentos,
 	removerAgendamentosAntigos,
 } from "../services/agendamentoService";
 import { parseISO } from "date-fns";
+import { StatusAgendamento } from '../models/agendamento';
 
-export const criarNovoAgendamento = (req: Request, res: Response) => {};
+export const criarNovoAgendamento = async (req: Request, res: Response) => {
+	const body = req.body;
 
-export const atualizarStatusAgendamento = (req: Request, res: Response) => {};
+	const result = await criarAgendamento(body);
 
-export const listarTodosAgendamentos = (req, res) => {
-	var d = req.query.data;
-	var s = req.query.status;
-	var m = req.query.motoristaCpf;
+	res.status(201).json(result);
+};
 
-	let df: Date | undefined = undefined;
-	if (d) df = parseISO(d as string);
+export const atualizarStatusAgendamento = async (req: Request, res: Response) => {
+	const id = req.params.id;
+	const status = req.body.status as StatusAgendamento;
 
-	const a = listarAgendamentos(df, s, m);
-	res.status(200).json(a);
+	const result = await alterarStatus(id, status);
+
+	res.status(200).json(result);
+};
+
+export const listarTodosAgendamentos = async (req: Request, res: Response) => {
+	var data = req.query.data;
+	var status = req.query.status as StatusAgendamento;
+	var motoristaCpf = req.query.motoristaCpf as string;
+
+	let dataFinal: Date | undefined = undefined;
+	if (data) dataFinal = parseISO(data as string);
+
+	const result = await listarAgendamentos({ data: dataFinal, status: status, motoristaCpf });
+	res.status(200).json(result);
 };
 
 export const deletarAgendamentosAntigos = (req: Request, res: Response) => {
