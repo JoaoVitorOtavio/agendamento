@@ -6,8 +6,7 @@ import { AppDataSource } from "./database/data-source";
 
 import app from "./index";
 
-// TODO: exportar para .env
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 AppDataSource.initialize()
     .then(() => {
