@@ -31,6 +31,10 @@ export const criarAgendamento = (novoAgendamento: Agendamento): Agendamento => {
 		throw new Error("Conflito de agendamento");
 	}
 
+	if (!novoAgendamento.status) {
+		novoAgendamento.status = "pendente";
+	}
+
 	agendamentos.push(novoAgendamento);
 	return agendamentos[agendamentos.length - 1];
 };
