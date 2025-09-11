@@ -1,4 +1,4 @@
-import { Agendamento } from '../models/agendamento';
+import { Agendamento, StatusAgendamento } from '../models/agendamento';
 import { isSameDay } from "date-fns";
 
 var agendamentos: Agendamento[] = [];
@@ -35,9 +35,22 @@ export const criarAgendamento = (novoAgendamento: Agendamento): Agendamento => {
 	return agendamentos[agendamentos.length - 1];
 };
 
-// export const alterarStatus = (id, novoStatus: Status): Agendamento => {
-// 	// TODO
-// };
+export const alterarStatus = (id: string, novoStatus: StatusAgendamento): Agendamento => {
+	const agendamento = agendamentos.find((a) => a.id === id);
+
+	if (agendamento!.status === "cancelado") {
+		throw new Error("Não é possível alterar um agendamento cancelado");
+	}
+
+	if (agendamento!.status === "concluido" && novoStatus === "cancelado") {
+		throw new Error(
+			"Não é possível cancelar um agendamento já concluído"
+		);
+	}
+
+	agendamento!.status = novoStatus;
+	return agendamento!;
+};
 
 // export const listarAgendamentos = (d, s, m): Agendamento[] => {
 // 	return agendamentos.filter((a) => {
@@ -74,3 +87,7 @@ export const criarAgendamento = (novoAgendamento: Agendamento): Agendamento => {
 
 // 	agendamentos = temp;	
 // };
+
+export const limparAgendamentos = () => {
+	agendamentos = [];
+};
