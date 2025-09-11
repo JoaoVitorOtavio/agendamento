@@ -8,24 +8,24 @@ import {
 import { parseISO } from "date-fns";
 import { StatusAgendamento } from '../models/agendamento';
 
-export const criarNovoAgendamento = async (req: Request, res: Response) => {
+export const criarNovoAgendamento = (req: Request, res: Response) => {
 	const body = req.body;
 
-	const result = await criarAgendamento(body);
+	const result = criarAgendamento(body);
 
 	res.status(201).json(result);
 };
 
-export const atualizarStatusAgendamento = async (req: Request, res: Response) => {
+export const atualizarStatusAgendamento = (req: Request, res: Response) => {
 	const id = req.params.id;
 	const status = req.body.status as StatusAgendamento;
 
-	const result = await alterarStatus(id, status);
+	const result = alterarStatus(id, status);
 
 	res.status(200).json(result);
 };
 
-export const listarTodosAgendamentos = async (req: Request, res: Response) => {
+export const listarTodosAgendamentos = (req: Request, res: Response) => {
 	var data = req.query.data;
 	var status = req.query.status as StatusAgendamento;
 	var motoristaCpf = req.query.motoristaCpf as string;
@@ -33,7 +33,7 @@ export const listarTodosAgendamentos = async (req: Request, res: Response) => {
 	let dataFinal: Date | undefined = undefined;
 	if (data) dataFinal = parseISO(data as string);
 
-	const result = await listarAgendamentos({ data: dataFinal, status: status, motoristaCpf });
+	const result = listarAgendamentos(dataFinal, status, motoristaCpf);
 	res.status(200).json(result);
 };
 

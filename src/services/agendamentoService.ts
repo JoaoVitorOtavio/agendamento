@@ -1,117 +1,107 @@
-import { AppDataSource } from '../database/data-source';
 import { Agendamento, StatusAgendamento } from '../models/agendamento';
 import { differenceInDays, isSameDay } from "date-fns";
 
 var agendamentos: Agendamento[] = [];
 
-const possuiAgendamentoPendenteOuAtrasado = async (
+const possuiAgendamentoPendenteOuAtrasado = (
 	motoristaCpf: string
-): Promise<boolean> => {
-	const agendamentoRepository = AppDataSource.getRepository(Agendamento);
-
-	const existe = await agendamentoRepository.exists({
-		where: [
-			{ motoristaCpf, status: "pendente" },
-			{ motoristaCpf, status: "atrasado" },
-		],
-	});
-
-	return existe;
+): boolean => {
+	return agendamentos.some(
+		(agendamento) =>
+			agendamento.motoristaCpf === motoristaCpf &&
+			(agendamento.status === "pendente" || agendamento.status === "atrasado")
+	);
 };
 
-const verificarConflitoNoMesmoHorario = async (
+const verificarConflitoNoMesmoHorario = (
 	dataHora: Date
-): Promise<boolean> => {
-	const agendamentoRepository = AppDataSource.getRepository(Agendamento);
+): boolean => {
+	return agendamentos.some(
+		(agendamento) =>
+			new Date(agendamento.dataHora).getTime() === new Date(dataHora).getTime()
+	);
+};
 
-	const existe = await agendamentoRepository.exists({
-		where: { dataHora },
-	});
+export const criarAgendamento = (novoAgendamento: Agendamento): Agendamento => {
 
-	return existe;
-}
-
-export const criarAgendamento = async (novoAgendamento: Agendamento): Promise<Agendamento> => {
-	const agendamentoRepository = AppDataSource.getRepository(Agendamento);
-
-	const possuiPendenciaOuAtraso = await possuiAgendamentoPendenteOuAtrasado(novoAgendamento.motoristaCpf);
-
-	const conflitoNoMesmoHorario = await verificarConflitoNoMesmoHorario(novoAgendamento.dataHora);
+	const possuiPendenciaOuAtraso = possuiAgendamentoPendenteOuAtrasado(novoAgendamento.motoristaCpf);
+	const conflitoNoMesmoHorario = verificarConflitoNoMesmoHorario(novoAgendamento.dataHora);
 
 	if (possuiPendenciaOuAtraso || conflitoNoMesmoHorario) {
 		throw new Error("Conflito de agendamento");
 	}
 
-	const createdRepository = await agendamentoRepository.save(novoAgendamento);
+	if (!novoAgendamento.status) {
+		novoAgendamento.status = "pendente";
+	}
 
-	return createdRepository;
+	agendamentos.push(novoAgendamento);
+	return agendamentos[agendamentos.length - 1];
 };
 
+export const alterarStatus = (id: string, novoStatus: StatusAgendamento): Agendamento => {
+	const agendamento = agendamentos.find((a) => a.id === id);
 
-export const alterarStatus = async (id: string, novoStatus: StatusAgendamento): Promise<Agendamento> => {
-	const agendamentoRepository = AppDataSource.getRepository(Agendamento);
-
-	const agendamentoOnDb = await agendamentoRepository.findOneBy({ id });
-
-	if (!agendamentoOnDb) {
-		throw new Error("Agendamento não encontrado");
-	}
-
-	if (agendamentoOnDb.status === "concluido" && novoStatus === "cancelado") {
-		throw new Error("Não é possível cancelar um agendamento já concluído");
-	}
-
-	if (agendamentoOnDb.status === "cancelado") {
+	if (agendamento!.status === "cancelado") {
 		throw new Error("Não é possível alterar um agendamento cancelado");
 	}
 
-	await agendamentoRepository.update({ id }, { status: novoStatus });
+	if (agendamento!.status === "concluido" && novoStatus === "cancelado") {
+		throw new Error(
+			"Não é possível cancelar um agendamento já concluído"
+		);
+	}
 
-
-	return { ...agendamentoOnDb, status: novoStatus };
+	agendamento!.status = novoStatus;
+	return agendamento!;
 };
 
+export const listarAgendamentos = (
+	dataHora?: Date,
+	status?: StatusAgendamento,
+	motoristaCpf?: string
+): Agendamento[] => {
+	return agendamentos.filter((a) => {
+		let corresponde = true;
 
-interface FiltroAgendamento {
-	data?: Date;
-	status?: StatusAgendamento;
-	motoristaCpf?: string;
-}
+		if (dataHora) {
+			const dataSplited = a.dataHora.toISOString().split("T")[0];
 
-export const listarAgendamentos = async (filtros: FiltroAgendamento): Promise<Agendamento[]> => {
-	const agendamentoRepo = AppDataSource.getRepository(Agendamento);
+			corresponde = corresponde && isSameDay(new Date(dataSplited), dataHora);
+		}
 
-	let agendamentos = await agendamentoRepo.find();
+		if (status) {
+			corresponde = corresponde && a.status === status;
+		}
 
-	if (filtros.data) {
-		agendamentos = agendamentos.filter((a) => {
-			const dataString = a.dataHora.toISOString().split("T")[0];
+		if (motoristaCpf) {
+			corresponde = corresponde && a.motoristaCpf === motoristaCpf;
+		}
 
-			return isSameDay(new Date(dataString), filtros.data!)
-		});
-	}
-
-	if (filtros.status) {
-		agendamentos = agendamentos.filter((a) => a.status === filtros.status);
-	}
-
-	if (filtros.motoristaCpf) {
-		agendamentos = agendamentos.filter((a) => a.motoristaCpf === filtros.motoristaCpf);
-	}
-
-	return agendamentos;
+		return corresponde;
+	});
 };
 
-export const removerAgendamentosAntigos = async (): Promise<void> => {
-	const agendamentoRepo = AppDataSource.getRepository(Agendamento);
+export const removerAgendamentosAntigos = (): void => {
+	var temp: Agendamento[] = [];
 
-	const agendamentos = await agendamentoRepo.find();
+	agendamentos.map((a) => {
+		const diasDeDiferenca = differenceInDays(new Date(), a.dataHora);
 
-	const agendamentosParaRemover = agendamentos.filter(
-		(a) => differenceInDays(new Date(), a.dataHora) > 3
-	);
+		if (diasDeDiferenca <= 3) {
+			for (let i = 0; i < agendamentos.length; i++) {
+				const e = agendamentos[i];
 
-	if (agendamentosParaRemover.length > 0) {
-		await agendamentoRepo.remove(agendamentosParaRemover);
-	}
+				if (e.id === a.id) {
+					temp[i] = e;
+				}
+			}
+		}
+	});
+
+	agendamentos = temp;
+};
+
+export const limparAgendamentos = () => {
+	agendamentos = [];
 };
