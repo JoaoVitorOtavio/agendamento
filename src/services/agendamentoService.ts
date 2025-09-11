@@ -1,5 +1,5 @@
 import { Agendamento, StatusAgendamento } from '../models/agendamento';
-import { isSameDay } from "date-fns";
+import { differenceInDays, isSameDay } from "date-fns";
 
 var agendamentos: Agendamento[] = [];
 
@@ -52,41 +52,51 @@ export const alterarStatus = (id: string, novoStatus: StatusAgendamento): Agenda
 	return agendamento!;
 };
 
-// export const listarAgendamentos = (d, s, m): Agendamento[] => {
-// 	return agendamentos.filter((a) => {
-// 		var corresponde = true;
+export const listarAgendamentos = (
+	dataHora?: Date,
+	status?: StatusAgendamento,
+	motoristaCpf?: string
+): Agendamento[] => {
+	return agendamentos.filter((a) => {
+		let corresponde = true;
 
-// 		if (d) {
-// 			corresponde = corresponde && isSameDay(a.dataHora, d);
-// 		} else if (s) {
-// 			corresponde = corresponde && a.status === s;
-// 		} else if (m) {
-// 			corresponde = corresponde && a.motoristaCpf === m;
-// 		}
+		if (dataHora) {
+			const dataSplited = a.dataHora.toISOString().split("T")[0];
 
-// 		return corresponde;
-// 	});
-// };
+			corresponde = corresponde && isSameDay(new Date(dataSplited), dataHora);
+		}
 
-// export const removerAgendamentosAntigos = (): void => {
-// 	var temp: Agendamento[] = [];
+		if (status) {
+			corresponde = corresponde && a.status === status;
+		}
 
-// 	agendamentos.map((a) => {
-// 		const diasDeDiferenca = differenceInDays(new Date(), a.dataHora);
+		if (motoristaCpf) {
+			corresponde = corresponde && a.motoristaCpf === motoristaCpf;
+		}
 
-// 		if (diasDeDiferenca <= 3) {
-// 			for (let i = 0; i < agendamentos.length; i++) {
-// 				const e = agendamentos[i];
+		return corresponde;
+	});
+};
 
-// 				if (e.id === a.id) {
-// 					temp[i] = e;
-// 				}
-// 			}
-// 		}
-// 	});
+export const removerAgendamentosAntigos = (): void => {
+	var temp: Agendamento[] = [];
 
-// 	agendamentos = temp;	
-// };
+	agendamentos.map((a) => {
+		const diasDeDiferenca = differenceInDays(new Date(), a.dataHora);
+
+		if (diasDeDiferenca <= 3) {
+			for (let i = 0; i < agendamentos.length; i++) {
+				const e = agendamentos[i];
+
+				if (e.id === a.id) {
+					temp[i] = e;
+				}
+			}
+		}
+	});
+
+	agendamentos = temp;
+};
 
 export const limparAgendamentos = () => {
 	agendamentos = [];
