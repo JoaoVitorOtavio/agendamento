@@ -3,9 +3,35 @@ import { isSameDay } from "date-fns";
 
 var agendamentos: Agendamento[] = [];
 
-export const criarAgendamento = (novoAgendamento: Agendamento): Agendamento => {
-	agendamentos.push(novoAgendamento);
+const possuiAgendamentoPendenteOuAtrasado = (
+	motoristaCpf: string
+): boolean => {
+	return agendamentos.some(
+		(agendamento) =>
+			agendamento.motoristaCpf === motoristaCpf &&
+			(agendamento.status === "pendente" || agendamento.status === "atrasado")
+	);
+};
 
+const verificarConflitoNoMesmoHorario = (
+	dataHora: Date
+): boolean => {
+	return agendamentos.some(
+		(agendamento) =>
+			new Date(agendamento.dataHora).getTime() === new Date(dataHora).getTime()
+	);
+};
+
+export const criarAgendamento = (novoAgendamento: Agendamento): Agendamento => {
+
+	const possuiPendenciaOuAtraso = possuiAgendamentoPendenteOuAtrasado(novoAgendamento.motoristaCpf);
+	const conflitoNoMesmoHorario = verificarConflitoNoMesmoHorario(novoAgendamento.dataHora);
+
+	if (possuiPendenciaOuAtraso || conflitoNoMesmoHorario) {
+		throw new Error("Conflito de agendamento");
+	}
+
+	agendamentos.push(novoAgendamento);
 	return agendamentos[agendamentos.length - 1];
 };
 
